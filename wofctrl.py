@@ -1,8 +1,47 @@
 import pygame
 import sys
+import json
+import random
+import time
 
 black = (0,0,0)
 white = (255,255,255)
+
+VOWEL_COST = 250
+LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+VOWELS = 'AEIOU'
+
+class WOFPlayer():
+  def __init__(self, name):
+    self.name = name
+    self.prizeMoney = 0
+    self.prizes = []
+      
+  def addMoney(self, amt):
+    self.prizeMoney = amt + self.prizeMoney
+  
+  def goBankrupt(self):
+    self.prizeMoney = 0
+      
+  def addPrize(self,prize):
+    self.prizes.append(prize)
+  
+  def __str__(self):
+    return "{} (${})".format(self.name, self.prizeMoney)
+
+class WOFHumanPlayer(WOFPlayer):
+  def __init__(self, name):
+    WOFPlayer.__init__(self, name)
+  
+  def getMove(self, category, obscuredPhrase, guessed):
+    print("{},has (${})".format(self.name, self.prizeMoney))
+    
+    print("Category:", category)
+    print("Phrase:", obscuredPhrase)
+    print("Guessed:", guessed)
+    
+    choose = (input("Guess a letter, phrase, or type 'exit' or 'pass':"))
+    return choose
 
 class Window(object):
   def __init__(self):
@@ -39,14 +78,13 @@ class Window(object):
     # and then adds the words to the board, starting at column zero for new words
     # and starting at the end of the previous word for words that continue from the
     # previous line.
-    # TODO: Add a check to see if the word will fit on a new line, and if not,
-    # hyphenate it and add the rest to the next line
-
     startrow = 0
     startcol = 0
     letters = letters.upper()
     words = letters.split()
     for word in words:
+      # TODO: Add a check to see if the word will fit on a new line, and if not,
+      # hyphenate it and add the rest to the next line
       if startcol + len(word) > 12:
         startrow += 1
         startcol = 0
@@ -68,9 +106,7 @@ if __name__ == '__main__':
   run = True
   Wm = Window()
   Wm.clearBoard()
-  Wm.addWords("Gaius Baltar is the Motherfucking Shit")
-  Wm.clearBoard()
-  Wm.addWords("Hello World!")
+  Wm.addWords("Jim Carrey As Ace Ventura")
   pygame.display.flip()
   while run:
       for event in pygame.event.get():
