@@ -70,7 +70,8 @@ class Window(object):
     # Adds a letter at positions on the wheel of fortune board in the format x, y, 
     # where 0, 0 is the top left, and 4, 12 is the bottom right. 
     self.addRect(53 + col*(Wm.rectwidth + Wm.buf), 61+ row*(Wm.rectheight + Wm.buf))
-    self.addText(53 + col*(Wm.rectwidth + Wm.buf), 61+ row*(Wm.rectheight + Wm.buf), letter)
+    if letter != '_':
+      self.addText(53 + col*(Wm.rectwidth + Wm.buf), 61+ row*(Wm.rectheight + Wm.buf), letter)
 
   def addWords(self, letters):
     # Adds a list of letters to the board, starting at position startrow, startcol
@@ -106,7 +107,7 @@ if __name__ == '__main__':
   run = True
   Wm = Window()
   Wm.clearBoard()
-  Wm.addWords("Jim Carrey As Ace Ventura")
+  Wm.addWords("Jim Ca__ey As Ace Ventu_a")
   pygame.display.flip()
   while run:
       for event in pygame.event.get():
