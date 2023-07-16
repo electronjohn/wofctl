@@ -115,7 +115,7 @@ def obscurePhrase(phrase, guessed):
   return rv
 
 # num_human = getNumberBetween('How many human players?', 0, 10)
-num_human = 1
+num_human = 0
 
 # Create the human player instances
 human_players = [WOFHumanPlayer('Player 1')]
@@ -141,13 +141,37 @@ if len(players) == 0:
 # category and phrase are strings.
 category, phrase = getRandomCategoryAndPhrase()
 # guessed is a list of the letters that have been guessed
-guessed = []
+guessed = ['R', 'S', 'T', 'L', 'N', 'E']
 
 # playerIndex keeps track of the index (0 to len(players)-1) of the player whose turn it is
 playerIndex = 0
 
 # will be set to the player instance when/if someone wins
 winner = False
+
+def requestPlayerMove(player, category, guessed):
+  while True: # we're going to keep asking the player for a move until they give a valid one
+    time.sleep(0.1) # added so that any feedback is printed out before the next prompt
+
+    move = player.getMove(category, obscurePhrase(phrase, guessed), guessed)
+    move = move.upper() # convert whatever the player entered to UPPERCASE
+    if move == 'EXIT' or move == 'PASS':
+      return move
+    elif len(move) == 1: # they guessed a character
+      if move not in LETTERS: # the user entered an invalid letter (such as @, #, or $)
+        print('Guesses should be letters. Try again.')
+        continue
+      elif move in guessed: # this letter has already been guessed
+        print('{} has already been guessed. Try again.'.format(move))
+        continue
+      elif move in VOWELS and player.prizeMoney < VOWEL_COST: # if it's a vowel, we need to be sure the player has enough
+        print('Need ${} to guess a vowel. Try again.'.format(VOWEL_COST))
+        continue
+      else:
+        return move
+    else: # they guessed the phrase
+      return move
+
 
 class Window(object):
   def __init__(self):
@@ -157,6 +181,7 @@ class Window(object):
 
     self.window = pygame.display.set_mode((self.width, self.height), 0, 32)
     self.font = pygame.font.SysFont(None, 25)
+    self.fontInfo = pygame.font.SysFont(None, 18)
     self.bgimg = pygame.image.load("1997-puzzle-board.png")
     self.rectheight = 17
     self.rectwidth = 13
@@ -204,21 +229,112 @@ class Window(object):
     # Clears the board of all letters
     self.window.fill(black)
     self.addBg()
+  
+  def addCategory(self, category):
+    # Adds a category below the board
+    text = self.font.render(category, True, white)
+    textrect = text.get_rect(center = (self.width/2, 170))
+    self.window.blit(text, textrect)
+
+  def addGuessed(self, guessed):
+    # Adds a list of guessed letters below the board
+    resultString = ', '.join(guessed)
+    resultString = '[' + resultString + ']'
+    self.window.blit(self.fontInfo.render(resultString, True, white), (10,180))
+  
+  def addPrize(self, prize):
+    # Adds a prize below the board
+    self.window.blit(self.fontInfo.render(prize, True, white), (10,200))
 
   def addBg(self):
     self.window.blit(self.bgimg, (0,0))
 
-
 if __name__ == '__main__':
   run = True
   Wm = Window()
-  Wm.clearBoard()
-  obscuredPhrase = obscurePhrase(phrase, guessed)
-  Wm.addWords(obscuredPhrase)
   pygame.display.flip()
   while run:
-      for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-              run = False  
-  pygame.quit() 
-  sys.exit()
+    Wm.clearBoard()
+    obscuredPhrase = obscurePhrase(phrase, guessed)
+    Wm.addWords(obscuredPhrase)
+    Wm.addCategory(category)
+    Wm.addGuessed(guessed)
+
+    player = players[playerIndex]
+    wheelPrize = spinWheel()
+    Wm.addPrize(wheelPrize["text"])
+    pygame.display.flip()
+    time.sleep(1) # pause again for more dramatic effect!
+
+    if wheelPrize['type'] == 'bankrupt':
+      player.goBankrupt()
+    elif wheelPrize['type'] == 'loseturn':
+      pass # do nothing; just move on to the next player
+    elif wheelPrize['type'] == 'cash':
+      move = requestPlayerMove(player, category, guessed)
+      if move == 'EXIT': # leave the game
+        print('Until next time!')
+        break
+      elif move == 'PASS': # will just move on to next player
+        print('{} passes'.format(player.name))
+      elif len(move) == 1: # they guessed a letter
+        guessed.append(move)
+
+        print('{} guesses "{}"'.format(player.name, move))
+
+        if move in VOWELS:
+          player.prizeMoney -= VOWEL_COST
+
+        count = phrase.count(move) # returns an integer with how many times this letter appears
+        if count > 0:
+          if count == 1:
+            print("There is one {}".format(move))
+          else:
+            print("There are {} {}'s".format(count, move))
+
+          # Give them the money and the prizes
+          player.addMoney(count * wheelPrize['value'])
+          if wheelPrize['prize']:
+            player.addPrize(wheelPrize['prize'])
+
+          # all of the letters have been guessed
+          if obscurePhrase(phrase, guessed) == phrase:
+            winner = player
+            break
+
+          continue # this player gets to go again
+
+        elif count == 0:
+          print("There is no {}".format(move))
+      else: # they guessed the whole phrase
+        if move == phrase: # they guessed the full phrase correctly
+          winner = player
+
+          # Give them the money and the prizes
+          player.addMoney(wheelPrize['value'])
+          if wheelPrize['prize']:
+            player.addPrize(wheelPrize['prize'])
+
+          break
+        else:
+          print('{} was not the phrase'.format(move))
+
+    # Move on to the next player (or go back to player[0] if we reached the end)
+    playerIndex = (playerIndex + 1) % len(players)
+
+if winner:
+  # In your head, you should hear this as being announced by a game show host
+  print('{} wins! The phrase was {}'.format(winner.name, phrase))
+  print('{} won ${}'.format(winner.name, winner.prizeMoney))
+  if len(winner.prizes) > 0:
+    print('{} also won:'.format(winner.name))
+    for prize in winner.prizes:
+      print('    - {}'.format(prize))
+else:
+  print('Nobody won. The phrase was {}'.format(phrase))
+
+for event in pygame.event.get():
+  if event.type == pygame.QUIT:
+    run = False  
+pygame.quit() 
+sys.exit()
