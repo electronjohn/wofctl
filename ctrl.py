@@ -11,9 +11,6 @@ height = 240  # Define the height
 size = (width, height)  # Define the size
 screen = pygame.display.set_mode(size)  # Create the game window with the size (240,320)
 
-# Load sound effect
-wavFileName = 'sounds/fire.wav'  # Set the sound effect file path
-sndTrack = pygame.mixer.music.load(wavFileName)  # Load the sound effect file
 # Timer text preparation
 font = pygame.font.SysFont('Arial', 60)  # Create a Font object for the timer text
 
