@@ -39,7 +39,7 @@ def gamePage(game_page):
 			if event.type == pygame.QUIT:  # If the window is closed, quit
 				pygame.quit()  # Quit pygame
 				sys.exit()
-			for i in range(31):  # Loop 31) times
+			for i in range(31):  # Loop 31 times
 				# If the mouse is released and within the range of a certain letter image
 				if event.type == pygame.MOUSEBUTTONUP and map[i][0] <= event.pos[0] <= map[i][0] + 64 and map[i][1] <= event.pos[1] <= map[i][1] + 30:
 					print(*list1[i])  # Print the letter corresponding to the clicked position
