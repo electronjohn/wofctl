@@ -3,7 +3,7 @@
 import pygame # Import the pygame library
 import numpy as np # Import the numpy library
 import itertools # Import the itertools library
-import time # Import the time library
+import sys # Import the sys library
 
 pygame.init()  # Initialize pygame
 width = 320  # Define the width
@@ -33,25 +33,6 @@ def ready():
 	list1 = ['A', 'B', 'C', 'D', 'E', 'Z', 'F', 'G', 'H', 'I', 'J', '_', 'K', 'L'
 	  					, 'M', 'N', 'O', '_', 'P', 'Q', 'R', 'S', 'T', '[', 'U', 'V'
 							, 'W', 'X', 'Y', 'WHL']  # Define a list of 36 letters
-# Define the start page
-def start(start_page):
-	while start_page:  # When on the start page
-		for event in pygame.event.get():  # Iterate through all events
-			if event.type == pygame.QUIT:  # If the window is closed, exit
-				pygame.quit()  # Quit pygame
-			screen.blit(pygame.image.load("pic/start-5.png"), (30, 190))  # Display the image "start-5.png" at (30,190)
-
-			global t_x, t_y  # Define two global variables t_x and t_y
-			t_x, t_y = pygame.mouse.get_pos()  # Get the x and y coordinates of the mouse and store them in variables t_x and t_y
-			if 30 <= t_x <= 200 and 190 <= t_y <= 250:  # If the mouse is within the range of the "start game" image
-				screen.blit(pygame.image.load("pic/start-6.png"), (30, 190))  # Switch the image to "start-6.png" at (30,190)
-			if event.type == pygame.MOUSEBUTTONUP and 30 <= t_x <= 200 and 190 <= t_y <= 250:  # If the mouse is released and the coordinates are within the range of the "start game" image
-				start_page = False  # Set the start page status to False, exit the start page
-				game_page = True  # Set the game page status to True, enter the game page
-				global time_start  # Define the global variable for starting time
-				screen.fill((0, 0, 0))  # Fill the screen with black
-				time_start = time.time()  # Start the timer, returns the current time as a timestamp
-		pygame.display.flip()  # Update the display
 
 # Define the game interface
 def gamePage(game_page):
@@ -60,6 +41,7 @@ def gamePage(game_page):
 		for event in pygame.event.get():  # Traverse all events
 			if event.type == pygame.QUIT:  # If the window is closed, quit
 				pygame.quit()  # Quit pygame
+				sys.exit()
 			for i in range(36):  # Loop 36 times
 				# If the mouse is released and within the range of a certain letter image
 				if event.type == pygame.MOUSEBUTTONUP and map[i][0] <= event.pos[0] <= map[i][0] + 64 and map[i][1] <= event.pos[1] <= map[i][1] + 30:
@@ -67,9 +49,7 @@ def gamePage(game_page):
 					print(event.pos) # Print the coordinates of the clicked position
 		pygame.display.flip()  # Update all displays
 
-start_page = True  # Define the initial start page status as True
 game_page = True  # Define the initial game page status as True
 while True:  # Loop
 	ready()  # Call the ready function
-	start(start_page)  # Call the start function
 	gamePage(game_page)  # Call the gamePage function
